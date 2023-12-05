@@ -1,0 +1,30 @@
+{
+  "canisters": {
+    "agrisurance_dao_backend": {
+      "candid": "src/agrisurance_dao_backend/agrisurance_dao_backend.did",
+      "package": "agrisurance_dao_backend",
+      "type": "rust"
+    },
+    "agrisurance_dao_frontend": {
+      "dependencies": [
+        "agrisurance_dao_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/agrisurance_dao_frontend/src/index.html"
+      },
+      "source": [
+        "src/agrisurance_dao_frontend/assets",
+        "dist/agrisurance_dao_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
