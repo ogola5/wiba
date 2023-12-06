@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate serde;
 use candid::{Decode, Encode};
-use ic_cdk::api::time;
+//use ic_cdk::api::time;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{BoundedStorable, Cell, DefaultMemoryImpl, StableBTreeMap, Storable};
 use std::{borrow::Cow, cell::RefCell};
@@ -186,3 +186,80 @@ thread_local! {
         StableBTreeMap::init(MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5))))
     );
 }
+
+#[ic_cdk::update]
+fn create_user_profile(name: String, role: UserRole, stake_in_dao: f64) -> Option<UserProfile> {
+    let id = ID_COUNTER
+        .with(|counter| {
+            let current_value = *counter.borrow().get();
+            counter.borrow_mut().set(current_value + 1)
+        })
+        .expect("cannot increment id counter");
+
+    let user_profile = UserProfile {
+        id,
+        name,
+        role,
+        transaction_history: Vec::new(),
+        stake_in_dao,
+    };
+
+    USER_PROFILES.with(|profiles| {
+        profiles.borrow_mut().insert(id, user_profile.clone());
+    });
+
+    Some(user_profile)
+}
+
+#[ic_cdk::query]
+fn read_user_profile(user_id: u64) -> Result<UserProfile, Error> {
+    if let Some(profile) = USER_PROFILES.with(|profiles| profiles.borrow().get(&user_id)) {
+        Ok(profile.clone())
+    } else {
+        Err(Error::NotFound {
+            msg: format!("User profile with id={} not found", user_id),
+        })
+    }
+}
+#[ic_cdk::update]
+fn update_user_profile(user_id: u64, name: String, stake_in_dao: f64) -> Result<UserProfile, Error> {
+    USER_PROFILES.with(|profiles| {
+        let mut profiles = profiles.borrow_mut();
+
+        // Check if the user profile exists
+        if let Some(mut profile) = profiles.remove(&user_id) {
+            // Update the fields
+            profile.name = name;
+            profile.stake_in_dao = stake_in_dao;
+
+            // Insert the updated profile back into the map
+            profiles.insert(user_id, profile.clone());
+
+            // Return the updated profile
+            Ok(profile)
+        } else {
+            // User profile not found
+            Err(Error::NotFound {
+                msg: format!("User profile with id={} not found", user_id),
+            })
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn delete_user_profile(user_id: u64) -> Result<UserProfile, Error> {
+    USER_PROFILES
+        .with(|profiles| profiles.borrow_mut().remove(&user_id))
+        .ok_or(Error::NotFound {
+            msg: format!("User profile with id={} not found", user_id),
+        })
+}
+
+#[derive(candid::CandidType, Deserialize, Serialize)]
+enum Error {
+    NotFound { msg: String },
+}
+
+// Similar CRUD operations can be implemented for TransactionRecord, InsuranceContract, GovernanceProposal, and StakeAdjustment
+// need this to generate candid
+ic_cdk::export_candid!();

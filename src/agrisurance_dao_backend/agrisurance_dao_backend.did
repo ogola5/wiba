@@ -1,21 +1,22 @@
 type Error = variant { NotFound : record { msg : text } };
-type Message = record {
+type Result = variant { Ok : UserProfile; Err : Error };
+type TransactionRecord = record {
   id : nat64;
-  title : text;
-  updated_at : opt nat64;
-  body : text;
-  created_at : nat64;
-  attachment_url : text;
+  involved_parties : vec nat64;
+  date : nat64;
+  amount : float64;
 };
-type MessagePayload = record {
-  title : text;
-  body : text;
-  attachment_url : text;
+type UserProfile = record {
+  id : nat64;
+  name : text;
+  role : UserRole;
+  stake_in_dao : float64;
+  transaction_history : vec TransactionRecord;
 };
-type Result = variant { Ok : Message; Err : Error };
+type UserRole = variant { Farmer; Consumer };
 service : {
-  add_message : (MessagePayload) -> (opt Message);
-  delete_message : (nat64) -> (Result);
-  get_message : (nat64) -> (Result) query;
-  update_message : (nat64, MessagePayload) -> (Result);
+  create_user_profile : (text, UserRole, float64) -> (opt UserProfile);
+  delete_user_profile : (nat64) -> (Result);
+  read_user_profile : (nat64) -> (Result) query;
+  update_user_profile : (nat64, text, float64) -> (Result);
 }
