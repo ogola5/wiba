@@ -1,21 +1,78 @@
 type Error = variant { NotFound : record { msg : text } };
-type Message = record {
+type GovernanceProposal = record {
   id : nat64;
-  title : text;
-  updated_at : opt nat64;
-  body : text;
-  created_at : nat64;
-  attachment_url : text;
+  voting_records : vec VotingRecord;
+  proposal_details : text;
+  proposer_id : nat64;
 };
-type MessagePayload = record {
-  title : text;
-  body : text;
-  attachment_url : text;
+type InsuranceContract = record {
+  id : nat64;
+  terms : text;
+  farmer_id : nat64;
+  payout_criteria : text;
+  consumer_id : nat64;
+  conditions : text;
 };
-type Result = variant { Ok : Message; Err : Error };
+type Result = variant { Ok : GovernanceProposal; Err : Error };
+type Result_1 = variant { Ok : InsuranceContract; Err : Error };
+type Result_2 = variant { Ok : StakeAdjustment; Err : Error };
+type Result_3 = variant { Ok : TransactionRecord; Err : Error };
+type Result_4 = variant { Ok : UserProfile; Err : Error };
+type StakeAdjustment = record {
+  new_stake : float64;
+  old_stake : float64;
+  user_id : nat64;
+  reason : text;
+};
+type TransactionRecord = record {
+  id : nat64;
+  involved_parties : vec nat64;
+  date : nat64;
+  amount : float64;
+};
+type UserProfile = record {
+  id : nat64;
+  name : text;
+  role : UserRole;
+  stake_in_dao : float64;
+  transaction_history : vec TransactionRecord;
+};
+type UserRole = variant { Farmer; Consumer };
+type VoteType = variant { Approve; Reject; Abstain };
+type VotingRecord = record { vote : VoteType; user_id : nat64 };
 service : {
-  add_message : (MessagePayload) -> (opt Message);
-  delete_message : (nat64) -> (Result);
-  get_message : (nat64) -> (Result) query;
-  update_message : (nat64, MessagePayload) -> (Result);
+  create_governance_proposal : (text, nat64, vec VotingRecord) -> (
+      opt GovernanceProposal,
+    );
+  create_insurance_contract : (nat64, nat64, text, text, text) -> (
+      opt InsuranceContract,
+    );
+  create_stake_adjustment : (nat64, float64, float64, text) -> (
+      opt StakeAdjustment,
+    );
+  create_transaction_record : (float64, nat64, vec nat64) -> (
+      opt TransactionRecord,
+    );
+  create_user_profile : (text, UserRole, float64) -> (opt UserProfile);
+  delete_governance_proposal : (nat64) -> (Result);
+  delete_insurance_contract : (nat64) -> (Result_1);
+  delete_stake_adjustment : (nat64) -> (Result_2);
+  delete_transaction_record : (nat64) -> (Result_3);
+  delete_user_profile : (nat64) -> (Result_4);
+  read_governance_proposal : (nat64) -> (Result) query;
+  read_insurance_contract : (nat64) -> (Result_1) query;
+  read_stake_adjustment : (nat64) -> (Result_2) query;
+  read_transaction_record : (nat64) -> (Result_3) query;
+  read_user_profile : (nat64) -> (Result_4) query;
+  update_governance_proposal : (nat64, text, nat64, vec VotingRecord) -> (
+      Result,
+    );
+  update_insurance_contract : (nat64, nat64, nat64, text, text, text) -> (
+      Result_1,
+    );
+  update_stake_adjustment : (nat64, nat64, float64, float64, text) -> (
+      Result_2,
+    );
+  update_transaction_record : (nat64, float64, nat64, vec nat64) -> (Result_3);
+  update_user_profile : (nat64, text, float64) -> (Result_4);
 }
