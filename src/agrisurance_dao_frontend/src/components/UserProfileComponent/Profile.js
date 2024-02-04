@@ -9,13 +9,14 @@ const backend = Actor.createActor(backend_idl, { agent, canisterId: backend_id }
 const Profile = () => {
   const [name, setName] = useState('');
   const [role, setRole] = useState('Farmer'); // Assuming 'Farmer' is a valid role
-  const [stakeInDao, setStakeInDao] = useState(0);
+  const [stakeInDao, setStakeInDao] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const userProfile = await backend.create_user_profile(name, role, stakeInDao);
+      // Convert role to the correct variant format
+      const userProfile = await backend.create_user_profile(name, { [role]: null }, Number(stakeInDao));
       if (userProfile) {
         setMessage('User profile created successfully!');
       } else {
@@ -42,7 +43,7 @@ const Profile = () => {
         <input
           type="number"
           value={stakeInDao}
-          onChange={(e) => setStakeInDao(parseFloat(e.target.value))}
+          onChange={(e) => setStakeInDao(e.target.value)}
           placeholder="Stake in DAO"
         />
         <button type="submit">Create Profile</button>

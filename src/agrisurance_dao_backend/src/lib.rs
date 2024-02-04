@@ -309,9 +309,17 @@ struct DisputePayload {
     consumer_id: u64,
     reason: String,
 }
+// fn string_to_user_role(role: String) -> Result<UserRole, String> {
+//     match role.as_str() {
+//         "Farmer" => Ok(UserRole::Farmer),
+//         "Consumer" => Ok(UserRole::Consumer),
+//         _ => Err(format!("Invalid role: {}", role)),
+//     }
+// }
 
 #[ic_cdk::update]
 fn create_user_profile(name: String, role: UserRole, stake_in_dao: f64) -> Option<UserProfile> {
+    
     let id = ID_COUNTER
         .with(|counter| {
             let current_value = *counter.borrow().get();
